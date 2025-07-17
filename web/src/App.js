@@ -90,6 +90,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [cityData, setCityData] = useState([]);
+  const [daysInput, setDaysInput] = useState(days);
 
   // 加载城市数据并生成级联结构
   useEffect(() => {
@@ -159,8 +160,20 @@ function App() {
     handleQuery(value);
   };
 
+  const handleDaysChange = (value) => {
+    setDaysInput(value);
+  };
+  const handleDaysConfirm = () => {
+    if (daysInput !== days) {
+      setDays(daysInput);
+      if (selected && selected.length > 0) {
+        handleQuery(selected, daysInput);
+      }
+    }
+  };
+
   // 查询逻辑
-  const handleQuery = async (value) => {
+  const handleQuery = async (value, customDays) => {
     let cityName = '';
     if (value.length === 3) {
       cityName = value[2]; // 区/县
@@ -176,7 +189,7 @@ function App() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await axios.get(`/api/sunglow?city=${encodeURIComponent(cityName)}&days=${days}`);
+      const res = await axios.get(`/api/sunglow?city=${encodeURIComponent(cityName)}&days=${customDays || days}`);
       setResult(res.data);
     } catch (e) {
       if (e.response && e.response.data && e.response.data.error) {
@@ -211,9 +224,9 @@ function App() {
   const responsiveCol = {
     xs: { span: 24 },
     sm: { span: 24 },
-    md: { span: 10 },
-    lg: { span: 9 },
-    xl: { span: 8 },
+    md: { span: 12 },
+    lg: { span: 12 },
+    xl: { span: 10 },
   };
   const responsiveRow = {
     gutter: [24, 24],
@@ -221,15 +234,12 @@ function App() {
   };
   const mobileCardStyle = {
     width: '100%',
-    minWidth: 0,
-    maxWidth: '100%',
-    marginBottom: 24,
   };
 
   const tagStyle = { borderRadius: 12, fontSize: 15, padding: '2px 10px', margin: '2px 4px' };
 
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto', padding: 24 }}>
+    <div style={{ maxWidth: 1200, margin: '40px auto', padding: 24 }}>
       <Title level={2}>火烧云概率预测</Title>
       <Cascader
         options={options}
@@ -243,21 +253,23 @@ function App() {
         style={{ width: 100, marginLeft: 8 }}
         min={1}
         max={5}
-        value={days}
-        onChange={setDays}
+        value={daysInput}
+        onChange={handleDaysChange}
+        onBlur={handleDaysConfirm}
+        onPressEnter={handleDaysConfirm}
         addonAfter="天"
       />
       <div style={{ marginTop: 32 }}>
         {loading && <Spin tip="查询中..." />}
         {result && (
-          <Card title={<span style={{ fontWeight: 600, fontSize: 24, letterSpacing: 2 }}>{result.city} 火烧云概率预测</span>} bordered={false} style={{ boxShadow: cardShadow, borderRadius: cardBorderRadius, background: 'linear-gradient(120deg, #f8fafc 0%, #fff 100%)', marginBottom: 32, maxWidth: 900, margin: '0 auto' }}>
+          <Card title={<span style={{ fontWeight: 600, fontSize: 24, letterSpacing: 2 }}>{result.city} 火烧云概率预测</span>} bordered={false} style={{ boxShadow: cardShadow, borderRadius: cardBorderRadius, background: 'linear-gradient(120deg, #f8fafc 0%, #fff 100%)', marginBottom: 32, maxWidth: 1200, margin: '0 auto' }}>
             <List
               dataSource={result.predictions}
               renderItem={item => (
-                <List.Item style={{ background: 'transparent', border: 'none', marginBottom: 40, padding: 0, justifyContent: 'center' }}>
+                <List.Item style={{ background: 'transparent', border: 'none', marginBottom: 56, padding: 0, justifyContent: 'center' }}>
                   <Row {...responsiveRow}>
                     {/* 早霞块 */}
-                    <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center', minWidth: 0 }}>
+                    <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center' }}>
                       <div style={{ ...innerCardStyle, background: morningGradient, ...mobileCardStyle, boxShadow: '0 2px 12px 0 rgba(255, 200, 100, 0.10)' }}>
                         <Text strong style={{ fontSize: 20, letterSpacing: 1, color: '#d48806', marginBottom: 8 }}>早霞</Text>
                         <Text type="secondary" style={{ fontSize: 14, marginBottom: 8 }}>{item.date}</Text>
@@ -282,7 +294,7 @@ function App() {
                       </div>
                     </Col>
                     {/* 晚霞块 */}
-                    <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center', minWidth: 0 }}>
+                    <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center' }}>
                       <div style={{ ...innerCardStyle, background: eveningGradient, ...mobileCardStyle, boxShadow: '0 2px 12px 0 rgba(100, 200, 255, 0.10)' }}>
                         <Text strong style={{ fontSize: 20, letterSpacing: 1, color: '#1890ff', marginBottom: 8 }}>晚霞</Text>
                         <Text type="secondary" style={{ fontSize: 14, marginBottom: 8 }}>{item.date}</Text>
