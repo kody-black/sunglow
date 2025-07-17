@@ -238,9 +238,60 @@ function App() {
 
   const tagStyle = { borderRadius: 12, fontSize: 15, padding: '2px 10px', margin: '2px 4px' };
 
+  // SVG插画（可替换为更美观的SVG）
+  const morningSVG = (
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="28" cy="38" rx="18" ry="8" fill="#ffe9c6"/>
+      <circle cx="28" cy="28" r="12" fill="#ffd591"/>
+      <ellipse cx="28" cy="44" rx="24" ry="6" fill="#fffbe6"/>
+    </svg>
+  );
+  const eveningSVG = (
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="28" cy="38" rx="18" ry="8" fill="#c6e6ff"/>
+      <circle cx="28" cy="28" r="12" fill="#91d5ff"/>
+      <ellipse cx="28" cy="44" rx="24" ry="6" fill="#e6f7ff"/>
+    </svg>
+  );
+  const logoSVG = (
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="28" cy="28" r="20" fill="url(#paint0_radial_1_1)"/>
+      <defs>
+        <radialGradient id="paint0_radial_1_1" cx="0" cy="0" r="1" gradientTransform="translate(28 28) scale(20)" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#ffd591"/>
+          <stop offset="1" stopColor="#fffbe6"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+  // 天气icon简化版
+  function WeatherIcon({ type, style }) {
+    if (!type) return null;
+    const t = type.toLowerCase();
+    if (t.includes('雨')) return <svg width="20" height="20" viewBox="0 0 20 20" style={style}><ellipse cx="10" cy="13" rx="7" ry="4" fill="#91d5ff"/><rect x="8" y="15" width="2" height="4" rx="1" fill="#69c0ff"/></svg>;
+    if (t.includes('云')) return <svg width="20" height="20" viewBox="0 0 20 20" style={style}><ellipse cx="10" cy="13" rx="7" ry="4" fill="#d6e4ff"/></svg>;
+    if (t.includes('晴')) return <svg width="20" height="20" viewBox="0 0 20 20" style={style}><circle cx="10" cy="10" r="6" fill="#ffd666"/></svg>;
+    return null;
+  }
+
   return (
     <div style={{ maxWidth: 1200, margin: '40px auto', padding: 24 }}>
-      <Title level={2}>火烧云概率预测</Title>
+      {/* 顶部Banner */}
+      <div style={{
+        width: '100%',
+        background: 'linear-gradient(90deg, #f8fafc 0%, #e0e7ff 100%)',
+        borderRadius: 32,
+        margin: '0 auto 32px',
+        padding: '32px 0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 4px 24px 0 rgba(0,0,0,0.04)'
+      }}>
+        <span style={{ marginRight: 18 }}>{logoSVG}</span>
+        <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: 2, color: '#222' }}>火烧云概率预测</span>
+      </div>
+      <Title level={2} style={{ display: 'none' }}>火烧云概率预测</Title>
       <Cascader
         options={options}
         onChange={handleChange}
@@ -271,6 +322,7 @@ function App() {
                     {/* 早霞块 */}
                     <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center' }}>
                       <div style={{ ...innerCardStyle, background: morningGradient, ...mobileCardStyle, boxShadow: '0 2px 12px 0 rgba(255, 200, 100, 0.10)' }}>
+                        <div style={{ marginBottom: 8 }}>{morningSVG}</div>
                         <Text strong style={{ fontSize: 20, letterSpacing: 1, color: '#d48806', marginBottom: 8 }}>早霞</Text>
                         <Text type="secondary" style={{ fontSize: 14, marginBottom: 8 }}>{item.date}</Text>
                         <Text type="secondary" style={{ fontSize: 13, marginBottom: 12 }}>日出 {item.sunrise_time ? new Date(item.sunrise_time).toLocaleTimeString() : '-'}</Text>
@@ -281,52 +333,59 @@ function App() {
                           </Tag>
                           {item.morning_probability !== null && (
                             <Tooltip title={<div><div>{offsetFullTip(item.morning_offset_minutes, 'morning')}</div><div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>{offsetTipType(item.morning_offset_minutes) === 'far' ? '数据点与日出/日落时间相差较大，预测结果仅供参考' : offsetTipType(item.morning_offset_minutes) === 'mid' ? '数据点有偏差，结果可能不够精确' : ''}</div></div>}>
-                              <InfoCircleOutlined style={{ marginLeft: 10, color: '#bfbfbf', fontSize: 20, verticalAlign: 'middle', transition: 'color 0.2s' }} />
-                            </Tooltip>
-                          )}
-                        </div>
-                        <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
-                          <Tag color="blue" style={{ ...tagStyle, fontWeight: 500 }}>{item.weather_morning || '-'}</Tag>
-                          <Text type="secondary" style={{ margin: '2px 8px' }}>云量: {item.clouds_morning !== null ? item.clouds_morning + '%' : '-'}</Text>
-                          <Text type="secondary" style={{ margin: '2px 8px' }}>湿度: {item.humidity_morning !== null ? item.humidity_morning + '%' : '-'}</Text>
-                          <Text type="secondary" style={{ margin: '2px 8px' }}>能见度: {item.visibility_morning !== null ? item.visibility_morning + '米' : '-'}</Text>
-                        </div>
+                            <InfoCircleOutlined style={{ marginLeft: 10, color: '#bfbfbf', fontSize: 20, verticalAlign: 'middle', transition: 'color 0.2s' }} />
+                          </Tooltip>
+                        )}
                       </div>
-                    </Col>
-                    {/* 晚霞块 */}
-                    <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center' }}>
-                      <div style={{ ...innerCardStyle, background: eveningGradient, ...mobileCardStyle, boxShadow: '0 2px 12px 0 rgba(100, 200, 255, 0.10)' }}>
-                        <Text strong style={{ fontSize: 20, letterSpacing: 1, color: '#1890ff', marginBottom: 8 }}>晚霞</Text>
-                        <Text type="secondary" style={{ fontSize: 14, marginBottom: 8 }}>{item.date}</Text>
-                        <Text type="secondary" style={{ fontSize: 13, marginBottom: 12 }}>日落 {item.sunset_time ? new Date(item.sunset_time).toLocaleTimeString() : '-'}</Text>
-                        <div style={{ margin: '18px 0 12px 0', textAlign: 'center' }}>
-                          <Tag color={probabilityColor(item.evening_probability)} style={{ fontSize: 36, fontWeight: 700, borderRadius: 20, padding: '10px 28px', letterSpacing: 2, marginBottom: 8, display: 'inline-flex', alignItems: 'baseline' }}>
-                            <span style={{ fontSize: 40 }}>{item.evening_probability !== null ? item.evening_probability : '--'}</span>
-                            <span style={{ fontSize: 20, marginLeft: 2 }}>%</span>
-                          </Tag>
-                          {item.evening_probability !== null && (
-                            <Tooltip title={<div><div>{offsetFullTip(item.evening_offset_minutes, 'evening')}</div><div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>{offsetTipType(item.evening_offset_minutes) === 'far' ? '数据点与日出/日落时间相差较大，预测结果仅供参考' : offsetTipType(item.evening_offset_minutes) === 'mid' ? '数据点有偏差，结果可能不够精确' : ''}</div></div>}>
-                              <InfoCircleOutlined style={{ marginLeft: 10, color: '#bfbfbf', fontSize: 20, verticalAlign: 'middle', transition: 'color 0.2s' }} />
-                            </Tooltip>
-                          )}
-                        </div>
-                        <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
-                          <Tag color="blue" style={{ ...tagStyle, fontWeight: 500 }}>{item.weather_evening || '-'}</Tag>
-                          <Text type="secondary" style={{ margin: '2px 8px' }}>云量: {item.clouds_evening !== null ? item.clouds_evening + '%' : '-'}</Text>
-                          <Text type="secondary" style={{ margin: '2px 8px' }}>湿度: {item.humidity_evening !== null ? item.humidity_evening + '%' : '-'}</Text>
-                          <Text type="secondary" style={{ margin: '2px 8px' }}>能见度: {item.visibility_evening !== null ? item.visibility_evening + '米' : '-'}</Text>
-                        </div>
+                      <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+                        <Tag color="blue" style={{ ...tagStyle, fontWeight: 500 }}>
+                          <WeatherIcon type={item.weather_morning} style={{ marginRight: 6}} />
+                          {item.weather_morning || '-'}
+                        </Tag>
+                        <Text type="secondary" style={{ margin: '2px 8px' }}>云量: {item.clouds_morning !== null ? item.clouds_morning + '%' : '-'}</Text>
+                        <Text type="secondary" style={{ margin: '2px 8px' }}>湿度: {item.humidity_morning !== null ? item.humidity_morning + '%' : '-'}</Text>
+                        <Text type="secondary" style={{ margin: '2px 8px' }}>能见度: {item.visibility_morning !== null ? item.visibility_morning + '米' : '-'}</Text>
                       </div>
-                    </Col>
-                  </Row>
-                </List.Item>
-              )}
-            />
-          </Card>
-        )}
-      </div>
+                    </div>
+                  </Col>
+                  {/* 晚霞块 */}
+                  <Col {...responsiveCol} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ ...innerCardStyle, background: eveningGradient, ...mobileCardStyle, boxShadow: '0 2px 12px 0 rgba(100, 200, 255, 0.10)' }}>
+                      <div style={{ marginBottom: 8 }}>{eveningSVG}</div>
+                      <Text strong style={{ fontSize: 20, letterSpacing: 1, color: '#1890ff', marginBottom: 8 }}>晚霞</Text>
+                      <Text type="secondary" style={{ fontSize: 14, marginBottom: 8 }}>{item.date}</Text>
+                      <Text type="secondary" style={{ fontSize: 13, marginBottom: 12 }}>日落 {item.sunset_time ? new Date(item.sunset_time).toLocaleTimeString() : '-'}</Text>
+                      <div style={{ margin: '18px 0 12px 0', textAlign: 'center' }}>
+                        <Tag color={probabilityColor(item.evening_probability)} style={{ fontSize: 36, fontWeight: 700, borderRadius: 20, padding: '10px 28px', letterSpacing: 2, marginBottom: 8, display: 'inline-flex', alignItems: 'baseline' }}>
+                          <span style={{ fontSize: 40 }}>{item.evening_probability !== null ? item.evening_probability : '--'}</span>
+                          <span style={{ fontSize: 20, marginLeft: 2 }}>%</span>
+                        </Tag>
+                        {item.evening_probability !== null && (
+                          <Tooltip title={<div><div>{offsetFullTip(item.evening_offset_minutes, 'evening')}</div><div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>{offsetTipType(item.evening_offset_minutes) === 'far' ? '数据点与日出/日落时间相差较大，预测结果仅供参考' : offsetTipType(item.evening_offset_minutes) === 'mid' ? '数据点有偏差，结果可能不够精确' : ''}</div></div>}>
+                            <InfoCircleOutlined style={{ marginLeft: 10, color: '#bfbfbf', fontSize: 20, verticalAlign: 'middle', transition: 'color 0.2s' }} />
+                          </Tooltip>
+                        )}
+                      </div>
+                      <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'center' }}>
+                        <Tag color="blue" style={{ ...tagStyle, fontWeight: 500 }}>
+                          <WeatherIcon type={item.weather_evening} style={{ marginRight: 6}} />
+                          {item.weather_evening || '-'}
+                        </Tag>
+                        <Text type="secondary" style={{ margin: '2px 8px' }}>云量: {item.clouds_evening !== null ? item.clouds_evening + '%' : '-'}</Text>
+                        <Text type="secondary" style={{ margin: '2px 8px' }}>湿度: {item.humidity_evening !== null ? item.humidity_evening + '%' : '-'}</Text>
+                        <Text type="secondary" style={{ margin: '2px 8px' }}>能见度: {item.visibility_evening !== null ? item.visibility_evening + '米' : '-'}</Text>
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </List.Item>
+            )}
+          />
+        </Card>
+      )}
     </div>
-  );
+  </div>
+);
 }
 
 export default App; 
