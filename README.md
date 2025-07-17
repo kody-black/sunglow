@@ -40,6 +40,7 @@ OPENWEATHER_API_KEY=你的API密钥
 ### 2. 启动后端
 ```bash
 cd server
+npm install
 node index.js
 ```
 默认监听 5000 端口。
