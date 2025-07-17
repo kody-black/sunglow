@@ -149,8 +149,19 @@ function App() {
               renderItem={item => (
                 <List.Item>
                   <div style={{ width: '100%' }}>
-                    <b>日期：</b>{item.date} <b>概率：</b>{item.probability}%<br />
-                    <b>天气：</b>{item.weather} <b>云量：</b>{item.clouds}% <b>湿度：</b>{item.humidity}% <b>能见度：</b>{item.visibility}米
+                    <b>日期：</b>{item.date}<br />
+                    <b>日出：</b>{item.sunrise_time ? new Date(item.sunrise_time).toLocaleTimeString() : '-'}
+                    <b>　日落：</b>{item.sunset_time ? new Date(item.sunset_time).toLocaleTimeString() : '-'}<br />
+                    <b>早霞概率：</b>{item.morning_probability !== null ? item.morning_probability + '%' : '无数据'}<br />
+                    <b>　天气：</b>{item.weather_morning || '-'}
+                    <b>　云量：</b>{item.clouds_morning !== null ? item.clouds_morning + '%' : '-'}
+                    <b>　湿度：</b>{item.humidity_morning !== null ? item.humidity_morning + '%' : '-'}
+                    <b>　能见度：</b>{item.visibility_morning !== null ? item.visibility_morning + '米' : '-'}<br />
+                    <b>晚霞概率：</b>{item.evening_probability !== null ? item.evening_probability + '%' : '无数据'}<br />
+                    <b>　天气：</b>{item.weather_evening || '-'}
+                    <b>　云量：</b>{item.clouds_evening !== null ? item.clouds_evening + '%' : '-'}
+                    <b>　湿度：</b>{item.humidity_evening !== null ? item.humidity_evening + '%' : '-'}
+                    <b>　能见度：</b>{item.visibility_evening !== null ? item.visibility_evening + '米' : '-'}
                   </div>
                 </List.Item>
               )}

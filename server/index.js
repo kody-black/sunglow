@@ -5,6 +5,7 @@ const cors = require('cors');
 const moment = require('moment');
 const fs = require('fs');
 const path = require('path');
+const SunCalc = require('suncalc');
 
 const app = express();
 app.use(cors());
@@ -39,6 +40,12 @@ function getCityCoordinates(cityName) {
     } catch (e) {
         return null;
     }
+}
+
+function getSunriseTimeRange(sunriseTime) {
+    const before = moment(sunriseTime).subtract(2, 'hours');
+    const after = moment(sunriseTime).add(30, 'minutes');
+    return { before, after };
 }
 
 function getSunsetTimeRange(sunsetTime) {
@@ -81,30 +88,59 @@ app.get('/api/sunglow', async (req, res) => {
     try {
         const forecast = await getWeatherForecast(coordinates.latitude, coordinates.longitude);
         const predictions = [];
-        const processedDates = new Set();
+        const groupedByDate = {};
         for (const item of forecast.list) {
             const date = moment(item.dt * 1000).format('YYYY-MM-DD');
-            if (processedDates.has(date) || processedDates.size >= days) {
-                continue;
-            }
-            const sunsetTime = moment(item.dt * 1000).hour(18);
-            const timeRange = getSunsetTimeRange(sunsetTime);
-            if (moment(item.dt * 1000).isBetween(timeRange.before, timeRange.after)) {
-                const probability = calculateSunglowProbability({
-                    clouds: item.clouds.all,
-                    humidity: item.main.humidity,
-                    visibility: item.visibility
-                });
-                predictions.push({
-                    date,
-                    probability,
-                    weather: item.weather[0].description,
-                    clouds: item.clouds.all,
-                    humidity: item.main.humidity,
-                    visibility: item.visibility
-                });
-                processedDates.add(date);
-            }
+            if (!groupedByDate[date]) groupedByDate[date] = [];
+            groupedByDate[date].push(item);
+        }
+        const sortedDates = Object.keys(groupedByDate).sort();
+        const timezone = forecast.city.timezone || 0;
+        for (let i = 0; i < Math.min(days, sortedDates.length); i++) {
+            const date = sortedDates[i];
+            const items = groupedByDate[date];
+            // 用suncalc计算该天的日出日落
+            const dateObj = moment(date).toDate();
+            const times = SunCalc.getTimes(dateObj, coordinates.latitude, coordinates.longitude);
+            // times.sunrise, times.sunset为本地时间Date对象
+            // 转为moment并加上城市时区偏移
+            const sunriseTime = moment(times.sunrise).utcOffset(timezone / 60);
+            const sunsetTime = moment(times.sunset).utcOffset(timezone / 60);
+            const sunriseRange = getSunriseTimeRange(sunriseTime);
+            const sunsetRange = getSunsetTimeRange(sunsetTime);
+            // 早霞
+            const morningItem = items.find(item => {
+                const t = moment.unix(item.dt).utcOffset(timezone / 60);
+                return t.isBetween(sunriseRange.before, sunriseRange.after);
+            });
+            // 晚霞
+            const eveningItem = items.find(item => {
+                const t = moment.unix(item.dt).utcOffset(timezone / 60);
+                return t.isBetween(sunsetRange.before, sunsetRange.after);
+            });
+            predictions.push({
+                date,
+                morning_probability: morningItem ? calculateSunglowProbability({
+                    clouds: morningItem.clouds.all,
+                    humidity: morningItem.main.humidity,
+                    visibility: morningItem.visibility
+                }) : null,
+                evening_probability: eveningItem ? calculateSunglowProbability({
+                    clouds: eveningItem.clouds.all,
+                    humidity: eveningItem.main.humidity,
+                    visibility: eveningItem.visibility
+                }) : null,
+                weather_morning: morningItem ? morningItem.weather[0].description : null,
+                weather_evening: eveningItem ? eveningItem.weather[0].description : null,
+                clouds_morning: morningItem ? morningItem.clouds.all : null,
+                clouds_evening: eveningItem ? eveningItem.clouds.all : null,
+                humidity_morning: morningItem ? morningItem.main.humidity : null,
+                humidity_evening: eveningItem ? eveningItem.main.humidity : null,
+                visibility_morning: morningItem ? morningItem.visibility : null,
+                visibility_evening: eveningItem ? eveningItem.visibility : null,
+                sunrise_time: sunriseTime.toISOString(),
+                sunset_time: sunsetTime.toISOString()
+            });
         }
         res.json({ city: cityName, predictions });
     } catch (e) {
