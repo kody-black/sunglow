@@ -69,7 +69,7 @@ npm start
 - 前端和后端端口不能冲突，已默认分离
 
 ## 效果截图
-（可自行补充页面截图）
+![1753971274968t.jpg](https://fastly.jsdelivr.net/gh/kody-black/pictures@main/images/1753971274968t.jpg)
 
 ---
 如有问题或建议，欢迎反馈！ 
